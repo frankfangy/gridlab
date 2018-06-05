@@ -324,10 +324,12 @@ class grid_world(QWidget):
         painter.restore()
              
 
- 
+def run_gui( gui_cls ):
+    app = QApplication(sys.argv)  
+    ex = gui_cls()  
+    sys.exit(app.exec_())  
+
  
 
 if __name__ == '__main__':  
-    app = QApplication(sys.argv)  
-    ex = grid_world()  
-    sys.exit(app.exec_())  
+    run_gui( grid_world ) 
