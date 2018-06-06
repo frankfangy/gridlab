@@ -17,14 +17,30 @@ import threading
 class grid_world(QWidget):   
     '''
     用来实验各种算法，并图形展示，基于方块地图
+    关键的成员说明：
+
+    config_gui : 定制界面元素，字体，按钮内容 ， 修改后可扩展
+                self.block_size = 40  每个方格的像素大小
+    config_map : 定义 self.map_mask , 定制整个地图
+
+    map_width : int , 网格横向个数
+    map_height: int , 网格纵向个数
+    map       : ndarray,  map[x][y] -> int map value
     '''
     def __init__(self):  
         super(grid_world, self).__init__()  
         self.initUI()  
 
-
     # ----------------------------- 子类继承，一般也需要调用基类函数的部分 ------------------------------------ 
     # ----- super( cls_name , self).config_gui() ...
+
+    def add_ctrl( self, cls , str , step = 25 ):
+        ctrl = cls(str,self)
+        self.ctrls_bottom_height += step 
+        ctrl.move(10, self.ctrls_bottom_height   )
+        ctrl.resize(85,18)
+        self.ctrls.append(ctrl)
+        return ctrl 
 
     def config_gui(self):
         # 界面组件 init & run 
@@ -33,22 +49,24 @@ class grid_world(QWidget):
         self.setFont(font)      
         self.pen = QPen()
         self.brush = QBrush()
-        self.btn = QPushButton('init', self)  
-        self.btn.move(10, 10)  
-        self.btnrun = QPushButton('run', self)  
-        self.btnrun.move(10, 40)  
-        self.btnstop = QPushButton('stop', self)  
-        self.btnstop.move(10, 70)  
+        self.ctrls_bottom_height = 10 
+        self.ctrls = []
+
+        self.btnreset = self.add_ctrl( QPushButton , 'reset' ,0)        
+        self.btnreset.clicked.connect(self.reset) 
+
+        self.btnrun = self.add_ctrl( QPushButton , 'run' )        
+        self.btnrun.clicked.connect(self.run) 
+
+        self.btnstop = self.add_ctrl( QPushButton , 'stop' )        
+        self.btnstop.clicked.connect(self.stop) 
+
         self.bkcolor = QColor(22,111,22)
         self.log_text = '欢迎来到网格世界'
         
-        self.btn.clicked.connect(self.reset) 
-        self.btnrun.clicked.connect(self.run)
-        self.btnstop.clicked.connect(self.stop)
-
         # 方块大小 , 基础的绘制布局配置
         self.block_size = 40
-        self.map_topleft = (100,10)
+        self.map_topleft = (110,10)
         
     def calc_map(self):        
         ''' 根据之前的设置，计算整体大小 , 初始化 map '''
@@ -107,6 +125,7 @@ class grid_world(QWidget):
 
         
     def draw_block(self, painter,x,y , block_map_value = None  ):
+        ''' 具体的绘制每个方格的逻辑，基本控制了所有的绘制逻辑 '''
         painter.save()
         if block_map_value is None:
             block_map_value = self.map[x][y]
@@ -126,7 +145,6 @@ class grid_world(QWidget):
         # 地图大小 , 初始map , 供子类再定义
         self.config_map()
        
-
         self.calc_map() # 解析 map_mask
 
         self.window_width = self.map_topleft[0] + self.block_size * self.map_width + 10
@@ -135,7 +153,8 @@ class grid_world(QWidget):
             self.window_width = 300 
         if self.window_height < 200:
             self.window_height = 200 
-
+        if self.window_height < self.ctrls_bottom_height + 50:
+            self.window_height = self.ctrls_bottom_height + 50
         
         self.setGeometry(300, 300, self.window_width , self.window_height )  
         self.setWindowTitle('grid_world')  
@@ -318,10 +337,13 @@ class grid_world(QWidget):
         except Exception as e:
             painter.setPen(QColor( 255,0,0 ))
             painter.drawText( QRect( self.map_topleft[0] , self.map_topleft[1] , 400,300  ) ,  Qt.AlignCenter,
-                                      "paintEvent met exception:\n" + repr(e) + str(e)  )
-     
-
+                                      "paintEvent met exception:\n" + repr(e) + str(e)  )     
         painter.restore()
+
+        
+    def closeEvent(self, event):
+        self.stop()
+        event.accept()
              
 
 def run_gui( gui_cls ):
