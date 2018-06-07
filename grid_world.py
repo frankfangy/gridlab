@@ -5,7 +5,7 @@ to run this , sudo apt-get install python3-pyqt5
 import sys 
 from PyQt5.QtCore import QPoint, QRect, QSize, Qt   
 from PyQt5.QtGui import (QBrush,  QPainter, QColor, QPen )
-from PyQt5.QtWidgets import (QApplication, QPushButton, QCheckBox, QGridLayout,QLabel, QWidget, QInputDialog)
+from PyQt5.QtWidgets import (QApplication, QPushButton, QCheckBox, QGridLayout,QLabel, QWidget, QInputDialog, QTextEdit ,QDialog )
 
 import numpy as np 
 from random import randint 
@@ -13,6 +13,18 @@ import time
 import threading 
 
 ###############################################
+
+class InputDialog(QDialog):
+    def __init__(self, parent,  str ):       
+        super(InputDialog,self).__init__(parent)
+        self.initUi(str)
+
+    def initUi(self, str ):
+        self.setWindowTitle("重新定义地图")
+        self.setGeometry(400,400,300,260)
+        self.edit = QTextEdit(str,self)
+        self.edit.move(10,10)
+        self.edit.resize( 280 ,240  )
 
 class grid_world(QWidget):   
     '''
@@ -61,12 +73,20 @@ class grid_world(QWidget):
         self.btnstop = self.add_ctrl( QPushButton , 'stop' )        
         self.btnstop.clicked.connect(self.stop) 
 
+        self.btnstop = self.add_ctrl( QPushButton , 'redefine map' )        
+        self.btnstop.clicked.connect(self.redefine ) 
+
         self.bkcolor = QColor(22,111,22)
         self.log_text = '欢迎来到网格世界'
         
         # 方块大小 , 基础的绘制布局配置
+        self.show_direction = True 
         self.block_size = 40
         self.map_topleft = (110,10)
+
+    def redefine(self):
+        myshow=InputDialog(self,self.map_mask) 
+        myshow.show()
         
     def calc_map(self):        
         ''' 根据之前的设置，计算整体大小 , 初始化 map '''
@@ -289,12 +309,14 @@ class grid_world(QWidget):
             painter.drawLine( pt1[0] , pt1[1] , pt2[0] , pt2[1]  )
             painter.drawLine( pt2[0] , pt2[1] , pt2[0] + arsz , pt2[1] + arsz)
             painter.drawLine( pt2[0] , pt2[1] , pt2[0] - arsz , pt2[1] + arsz)
-        else:
+        elif direction == 'd':
             pt1 = (  centerx  , centery- maxsz//2 )
             pt2 = (  centerx  , centery+ maxsz//2  )
             painter.drawLine( pt1[0] , pt1[1] , pt2[0] , pt2[1]  )
             painter.drawLine( pt2[0] , pt2[1] , pt2[0] + arsz , pt2[1] - arsz)
             painter.drawLine( pt2[0] , pt2[1] , pt2[0] - arsz , pt2[1] - arsz)
+        else:
+            painter.drawRect( QRect(centerx - maxsz//3 , centery - maxsz//3 , maxsz * 0.66 , maxsz * 0.66  ) )
 
 
                 

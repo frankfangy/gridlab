@@ -68,8 +68,9 @@ class value_based(grid_world):
         for x in range(self.map_width):
             for y in range(self.map_height):
                 mpv = self.map[x][y]
-                self.value[x][y] = {1:self.value_init , 2:0 , 3: self.green_reward , 4:self.red_reward }.get(mpv,0)
+                self.value[x][y] = {1:self.value_init , 2:self.value_init , 3: self.green_reward , 4:self.red_reward }.get(mpv,0)
 
+        self.show_direction = False 
         self.update()
 
     def avaliable_for_value(self,x,y):
@@ -77,6 +78,25 @@ class value_based(grid_world):
             return False 
         return self.map[x][y] != 2
 
+    def calc_direction(self):
+        self.direction = np.ndarray( ( self.map_width , self.map_height ) , dtype=np.int8 )
+        for x in range(self.map_width):
+            for y in range(self.map_height):                
+                maxv = self.value_init
+                ii = 4 # stay there
+                if self.avaliable_for_value(x,y):
+                    v0 = self.value[x][y]
+                    for i in range(5):
+                        d = ((0,-1),(1,0),(0,1),(-1,0),(0,0))[i]
+                        nx = x + d[0]
+                        ny = y + d[1]
+                        if self.avaliable_for_value(nx,ny):
+                            if maxv < self.value[nx][ny]  :
+                                ii = i 
+                                maxv = self.value[nx][ny] 
+                    self.direction[x][y] = ii 
+        self.show_direction = True 
+     
     def run_proc(self):
         ''' 此处是一个示范代码，子类应沿袭相同结构 '''
         # setup flag
@@ -85,11 +105,12 @@ class value_based(grid_world):
 
         while self.running:
             updated = 0
+            self.value_old = self.value.copy()
             for x in range(self.map_width):
                 for y in range(self.map_height):
                     if  self.map[x][y] == 1:
-                        v = self.value[x][y]
-                        maxv = self.value_init
+                        v0 = self.value_old[x][y]
+                        maxv = self.value_init 
                         for i in range(4):
                             d  =((0,-1),(1,0),(0,1),(-1,0))[i]
                             d1 =((-1,0),(0,-1),(1,0),(0,1))[i]
@@ -102,28 +123,29 @@ class value_based(grid_world):
                             ny2 = y + d2[1]                            
                             if self.avaliable_for_value(nx,ny): # this nx,ny is avaliable for value
                                 # 计算，如果向 nx ny 点移动， 本地的value值可能是多少 
-                                v = self.value[nx][ny] * self.moving_stability 
+                                v = self.value_old[nx][ny] * self.moving_stability 
                                 if self.avaliable_for_value(nx1,ny1):
-                                    v += (1.0-self.moving_stability )*0.5 * self.value[nx1][ny1]
+                                    v += (1.0-self.moving_stability )*0.5 * self.value_old[nx1][ny1]
                                 else:  # 留在原地
-                                    v += (1-self.moving_stability )*0.5 * v
+                                    v += (1-self.moving_stability )*0.5 * v0
 
                                 if self.avaliable_for_value(nx2,ny2):
-                                    v += (1-self.moving_stability )*0.5 * self.value[nx2][ny2]
+                                    v += (1-self.moving_stability )*0.5 * self.value_old[nx2][ny2]
                                 else:  # 留在原地
-                                    v += (1-self.moving_stability )*0.5 * v
+                                    v += (1-self.moving_stability )*0.5 * v0
                                 if v > maxv:
                                     maxv = v 
                         # here we got the maxv 
-                        if   v - self.moving_reward < maxv: 
-                            updated += fabs( self.value[x][y] - maxv - self.moving_reward )
+                        if   v0 - self.moving_reward < maxv: 
+                            updated += fabs( v0 - maxv - self.moving_reward )
                             self.value[x][y] = maxv + self.moving_reward
             if updated < 1e-5 :
                 break 
             self.update()
             time.sleep(0.3)
 
-        self.set_log('价值网络计算完成')        
+        self.set_log('价值网络计算完成')   
+        self.calc_direction()     
         self.running = False  
         self.update()
 
@@ -138,7 +160,8 @@ class value_based(grid_world):
         self.draw_background( painter, x,y , bkcolor  )
         if block_map_value == 1: # path block
             self.draw_text( painter , x,y ,  '%g'%(block_value) , (0,0,0) , 'd'  )
-            #self.draw_arrow(painter,x,y, 'urdl'[ randint(0,3) ] , (255,0,0) ,  'u'  )  
+            if self.show_direction:
+                self.draw_arrow(painter,x,y, 'urdlo'[ self.direction[x][y] ] , (255,0,0) ,  'u'  )  
         elif block_map_value != 2: # other
             self.draw_text( painter , x,y ,  str(block_value) , (0,0,0) , 'd'  )
 
