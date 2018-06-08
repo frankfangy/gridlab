@@ -51,6 +51,8 @@ public:
             else 
             {                    
                 pos = 0;
+                *data = mindata + pos * step;
+                pos++;
                 return false; // no scan data anymore
             }
         }
@@ -65,7 +67,7 @@ public:
     void add_scan_item( double *d , double delta , int scan_number  )
     {
         scan_items[count].setup( d, delta , scan_number );
-	count++;
+	    count++;
     }
 
                 
@@ -76,7 +78,7 @@ public:
         
     virtual double loss()
     {
-    	std::cout << "running loss on : " << count;
+    	std::cout << "running loss on : " ;
 
         for( int i=0; i< count; i++)
             std::cout <<  scan_items[i].value() << ",";
@@ -146,8 +148,8 @@ public:
         board_height = 401;
         a1 = a2 = M_PI/2;
 
-        add_scan_item(&l1,1.0,2);
-        add_scan_item(&l2,2.0,3);   
+        add_scan_item(&l1,1.0,5);
+        add_scan_item(&l2,2.0,5);   
         /*     
         add_scan_item(&x0,1.0,5);
         add_scan_item(&y0,1.0,5);
