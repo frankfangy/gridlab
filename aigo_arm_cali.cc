@@ -65,6 +65,7 @@ public:
     void add_scan_item( double *d , double delta , int scan_number  )
     {
         scan_items[count].setup( d, delta , scan_number );
+	count++;
     }
 
                 
@@ -75,10 +76,11 @@ public:
         
     virtual double loss()
     {
-        printf("running loss on : ");
+    	std::cout << "running loss on : " << count;
+
         for( int i=0; i< count; i++)
-            printf("%lf,",  scan_items[i].value() );
-        printf("\n");
+            std::cout <<  scan_items[i].value() << ",";
+	std::cout << std::endl;
         return 1; // add you loss funciton here 
     }
     
