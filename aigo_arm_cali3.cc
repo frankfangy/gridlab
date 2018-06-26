@@ -215,7 +215,7 @@ int main(int n, char *argv[])
 
     armc.scan();
 
-    for( int i=0 ; i< 5 ;i++)
+    for( int i=0 ; i< 2 ;i++)
     {
         armc.relocate_center_on_hold_place();
         armc.scan();
