@@ -9,11 +9,11 @@ class arm_cali: public scanner
 public:
     struct test_data_package
     {
-        double relative_x;  // 
-        double relative_y;
-        double deva1;
-        double deva2;
-        double deva3; 
+        double relative_x;  // 采样点相对 棋盘 0,0 的 x 坐标
+        double relative_y;  // 采样点相对 棋盘 0,0 的 y 坐标
+        double deva1;       // 舵机1 的机械采集值
+        double deva2;       // 舵机2 的机械采集值
+        double deva3;       // 舵机3 的机械采集值
 
         test_data_package(){}
 
@@ -57,8 +57,10 @@ public:
     double ellipse_phase1 ; // angle that get min r for l1
     double ellipse_short_ratio1; // min r = l1 * ratio 
 
-    std::vector<test_data_package> test_datas; //max 20
+    // 被加入用来训练参数的 测试数据
+    std::vector<test_data_package> test_datas;  
 
+    // 构造函数，初始化参数中心值 ， 初始化扫描范围 ，密度
     arm_cali():scanner()
     {
         l1 = 355;
@@ -89,11 +91,13 @@ public:
 
     }
 
+    /// 加入测试采样数据，供模型进行拟合 
     void insert_test_data( double relative_x , double relative_y , double da1, double da2 , double da3  )
     {
         test_datas.push_back(  test_data_package( relative_x , relative_y , da1 , da2, da3 ) );
     }
     
+    /// 计算 当前参数下，拟合的误差值， 越小越好
     virtual double loss()
     {
         static int scan_count = 0;
@@ -133,6 +137,7 @@ public:
         return sum;
     }
     
+    /// 从 目标位置 x,y 单位毫米 ， 计算出 应该采用的 a1,a2 
     void calc_a1a2_from_xy_raw( double x , double y , double &dev_a1 , double &dev_a2    )
     {
         double r = sqrt( x*x + y*y );
@@ -144,6 +149,7 @@ public:
         dev_a2 = logic_a2 + a2_offset;
     }
 
+    /// 已知 deva1,a2 , 计算处放置的位置
     void calc_xy_from_a1a2( double deva1 , double deva2, double &x , double &y   )
     {
         double da1,da2,da,ll1,ll2;
@@ -167,6 +173,7 @@ public:
     {
         double da1,da2 , xx,yy,dx,dy;
         calc_a1a2_from_xy_raw( x,y,da1,da2 );
+        std::cout <<"x,y -> a1 a2 :" << da1 << "," << da2 ;
 
         calc_xy_from_a1a2(da1,da2, xx, yy);
         dx = xx - x;
