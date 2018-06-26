@@ -77,17 +77,17 @@ public:
         ellipse_phase1 = M_PI/2;
         ellipse_short_ratio1 = 0.95;
 
-        add_scan_item(&l1,2.0,5);
-        add_scan_item(&l2,2.0,5);   
-        add_scan_item(&x0,2.0,5);
-        add_scan_item(&y0,3.0,5);
-        add_scan_item(&a1_offset,0.3,5);
-        add_scan_item(&a2_offset,0.3,5);  
+        add_scan_item(&l1,2.0,5, "arm1 len ");
+        add_scan_item(&l2,2.0,5, "arm2 len ");   
+        add_scan_item(&x0,2.0,5, "x0 " );
+        add_scan_item(&y0,3.0,5, "y0 ");
+        add_scan_item(&a1_offset,0.3,5, "eng1 offset ");
+        add_scan_item(&a2_offset,0.3,5, "eng2 offset ");  
         
-        add_scan_item(&ellipse_phase,M_PI/2,5);  
-        add_scan_item(&ellipse_short_ratio,0.0499,5);  
-        add_scan_item(&ellipse_phase1,M_PI/2,5);  
-        add_scan_item(&ellipse_short_ratio1,0.0499,5);  
+        add_scan_item(&ellipse_phase,M_PI/2,5 , "ellipse_phase 2 ");  
+        add_scan_item(&ellipse_short_ratio,0.0499,5, "ellipse_short_ratio 2 ");  
+        add_scan_item(&ellipse_phase1,M_PI/2,5,"ellipse_phase 1 ");  
+        add_scan_item(&ellipse_short_ratio1,0.0499,5,"ellipse_short_ratio 1 ");  
 
     }
 
@@ -172,8 +172,9 @@ public:
     void calc_a1a2_from_xy( double x , double y , double &dev_a1 , double &dev_a2    )
     {
         double da1,da2 , xx,yy,dx,dy;
+        std::cout << "input: x,y " << x << "," << y << std::endl;
         calc_a1a2_from_xy_raw( x,y,da1,da2 );
-        std::cout <<"x,y -> a1 a2 :" << da1 << "," << da2 ;
+        std::cout <<"x,y -> a1 a2 :" << da1 << "," << da2 << std::endl;
 
         calc_xy_from_a1a2(da1,da2, xx, yy);
         dx = xx - x;
@@ -214,7 +215,7 @@ int main(int n, char *argv[])
 
     armc.scan();
 
-    for( int i=0 ; i< 15 ;i++)
+    for( int i=0 ; i< 5 ;i++)
     {
         armc.relocate_center_on_hold_place();
         armc.scan();

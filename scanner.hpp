@@ -100,9 +100,9 @@ public:
         std::cout << scan_items[i].catched << std::endl;
     }
 
-    void add_scan_item( double *d , double delta , int scan_number  )
+    void add_scan_item( double *d , double delta , int scan_number , const char* name = "" )
     {
-        scan_items[count].setup( d, delta , scan_number );
+        scan_items[count].setup( d, delta , scan_number , name  );
 	    count++;
     }
 
@@ -127,7 +127,7 @@ public:
     	std::cout << "running loss on : " ;
 
         for( int i=0; i< count; i++)
-            std::cout <<  scan_items[i].value() << ",";
+            std::cout <<  "[" << scan_items[i].name << ":" << scan_items[i].value() << "],";
 	    std::cout << std::endl;
         return 1; // add you loss funciton here 
     }
