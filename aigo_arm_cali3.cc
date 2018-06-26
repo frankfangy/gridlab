@@ -9,7 +9,7 @@ class arm_cali: public scanner
 public:
     struct test_data_package
     {
-        double relative_x;
+        double relative_x;  // 
         double relative_y;
         double deva1;
         double deva2;

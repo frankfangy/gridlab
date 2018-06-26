@@ -7,4 +7,4 @@ cali2: aigo_arm_cali2.cc
 	g++ aigo_arm_cali2.cc -o cali2
 
 cali3: aigo_arm_cali3.cc
-	g++ aigo_arm_cali3.cc -o cali3
+	g++ aigo_arm_cali3.cc -o cali3 -I ../x-release/include -lx -L ../libs -std=c++11
