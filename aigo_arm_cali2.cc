@@ -6,19 +6,13 @@
 class arm_cali: public scanner
 {
 public:
-
-    double  l1,l2,
-            x0,y0,
-            board_width , board_height,
-            a1_offset,a2_offset;
-public:
     struct test_data_package
     {
         int gridx;
         int gridy;
         double deva1;
         double deva2;
-        double deva3;
+        double deva3; 
 
         test_data_package(){}
 
@@ -48,6 +42,18 @@ public:
         }        
     };
 
+
+    
+public:
+
+    double  l1,l2,
+            x0,y0,
+            board_width , board_height,
+            a1_offset,a2_offset;
+
+    double ellipse_phase ; // angle that get min r for l2
+    double ellipse_short_ratio; // min r = l2 * ratio 
+
     std::vector<test_data_package> test_datas; //max 20
 
     arm_cali():scanner()
@@ -61,12 +67,20 @@ public:
         a1_offset = M_PI/2;
         a2_offset = M_PI;
 
+        ellipse_phase = M_PI/2;
+        ellipse_short_ratio = 0.95;
+
+        
+
         add_scan_item(&l1,2.0,5);
         add_scan_item(&l2,2.0,5);   
         add_scan_item(&x0,2.0,5);
         add_scan_item(&y0,3.0,5);
         add_scan_item(&a1_offset,0.3,10);
         add_scan_item(&a2_offset,0.3,10);  
+        
+        add_scan_item(&ellipse_phase,M_PI/2,10);  
+        add_scan_item(&ellipse_short_ratio,0.0499,10);  
 
         // prepare input data 
         double logic_x[13] = { 0,      18,     18,     0,      3,      15,     15,     3,      9,     9,      15,     9,      3 };
@@ -84,24 +98,26 @@ public:
     virtual double loss()
     {
         static int scan_count = 0;
-        if( ++scan_count % 10000 == 0 )
+        if( ++scan_count % 1000000 == 0 )
     	scanner::loss(); // log param
 
         // for each case of param 
         // loss is the std error of position
         double da1,da2,sum = 0;
-        double x,y;
+        double x,y,ll2,da;
         int i;
         for(i=0;i< test_datas.size(); i++)
         {
             da1 = test_datas[i].deva1 - a1_offset;
             da2 = test_datas[i].deva2 - a2_offset; 
             
-            //std::cout << i << "> " << da1 << "," <<   da2 ;
+            da = fabs(da2 - ellipse_phase);
+            if(da > M_PI_2 )  da = M_PI - da;            
+            ll2 = l2 * (  da * 1.0 + ( M_PI_2 - da ) * ellipse_short_ratio   ) / M_PI_2 ;
 
             da2 =  da1 - da2; // arm 2 global angle
-            x = l1 * cos(da1) + l2 * cos(da2);
-            y = l1 * sin(da1) + l2 * sin(da2);
+            x = l1 * cos(da1) + ll2 * cos(da2);
+            y = l1 * sin(da1) + ll2 * sin(da2);
             
             //std::cout <<  " - " << x << "," << y ;
 
@@ -125,7 +141,7 @@ int main(int n, char *argv[])
     arm_cali armc;
     armc.scan();
 
-    for( int i=0 ; i< 20 ;i++)
+    for( int i=0 ; i< 10 ;i++)
     {
         armc.relocate_center_on_hold_place();
         armc.scan();

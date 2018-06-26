@@ -4,6 +4,8 @@ __pycache__/
 *$py.class
 *.o
 cali1*
+cali2*
+cali3*
 .vscode/*
 # C extensions
 *.so

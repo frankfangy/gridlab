@@ -3,7 +3,7 @@
 #include <iostream>
 #include <math.h>
 #include <float.h>
-
+#include <string.h>
 
 class scanner 
 {
@@ -14,15 +14,22 @@ public:
         double catched;
         double mindata ;
         double step;
+        double min_step;
         int top ; 
         int pos ;
+        char name[128];
         scan_item(){}
-        scan_item( double *d , double delta , int scan_number )
+        scan_item( double *d , double delta , int scan_number , const std::string &sname = "" )
         {
-            setup( d ,  delta ,  scan_number );
+            setup( d ,  delta ,  scan_number , sname );
         }
 
-        void setup( double *d , double delta , int scan_number )
+        void set_min_step(double mstep)
+        {
+            min_step = mstep;
+        }
+
+        void setup( double *d , double delta , int scan_number , const std::string &sname = "" )
         {
             data = d; 
             catched = *d;
@@ -30,16 +37,35 @@ public:
             step = delta * 2.0 /  (scan_number-1);
             top = scan_number;
             pos = 0;
+            min_step = 0.0001;
+            strcpy( name, sname.c_str() );
+        }
+
+        void relocate_center_on_hold_place( double window_shrink_ratio = 0.25 )
+        {
+            double w = step * top * window_shrink_ratio;
+            mindata = catched - w;
+            step = w * 2.0 / (top-1);
+            pos = 0;
         }
 
         void reset() {pos = 0;}
 
         void hold() { catched = *data; }
 
+        void reset_to_hold() {  *data = catched; }        
+
         double value() const  { return *data; }
 
         bool next()
         {
+            if( step < min_step )
+            {
+                *data = mindata + step * top/2;
+                pos = 1;
+                return false;
+            }
+
             if( pos < top )
             {
                 *data = mindata + pos * step;
@@ -84,6 +110,16 @@ public:
     void hold()
     {
         for(int i=0; i<count; i++)            scan_items[i].hold();
+    }
+
+    void reset_to_hold()
+    {
+        for(int i=0; i<count; i++)            scan_items[i].reset_to_hold();
+    }
+
+    void relocate_center_on_hold_place()
+    {
+        for(int i=0; i<count; i++)      scan_items[i].relocate_center_on_hold_place();
     }
         
     virtual double loss()
