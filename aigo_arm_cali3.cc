@@ -142,7 +142,7 @@ public:
     {
         double r = sqrt( x*x + y*y );
         double a3 = acos( x / r );
-        double logic_a2 = acos( (r - l1 )/l2 );
+        double logic_a2 = acos( (r*r - l1*l1 - l2*l2) /( 2 * l1 * l2 )   );
         double a4 = asin( l2 * sin( logic_a2 ) / r );
         double logic_a1 = a3 + a4;         
         dev_a1 = logic_a1 + a1_offset;
@@ -186,6 +186,9 @@ public:
         dx = xx - x;
         dy = yy - y;
         std::cout << "2nd calc : dxdy: " << dx << "," << dy << std::endl ;
+
+        dev_a1 = da1;
+        dev_a2 = da2;
     }
 
 };
